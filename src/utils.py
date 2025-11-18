@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd 
 import dill 
 from src.exception import CustomException
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import r2_score
 
 
@@ -21,7 +21,7 @@ def save_object(file_path, obj):
         raise CustomException(e, sys)
     
 
-def evaluate_models(X_train, X_test, y_train, y_test, models):
+def evaluate_models(X_train, X_test, y_train, y_test, models, param):
     try:
        
         # X_train, X_test, y_train, y_test = train_test_split(
@@ -36,7 +36,12 @@ def evaluate_models(X_train, X_test, y_train, y_test, models):
             report dictionary
             '''
             model = list(models.values())[i]
+            para = param[list(models.keys())[i]]
 
+            gridSearch = GridSearchCV(model, para, cv=3) # performing hyperparameter tuning using grid search
+            gridSearch.fit(X_train, y_train)
+
+            model.set_params(**gridSearch.best_params_)
             model.fit(X_train, y_train) # Train model
 
             y_train_pred = model.predict(X_train) # evaluate model on train data
